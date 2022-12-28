@@ -21,9 +21,9 @@ local function LoadData(Key: string, Data: string)
 
 		return (Value)
 	end)
-
+	
 	if (not success) then
-		return "Error occurred, please retry again later."
+		return "Error, try again later"
 	end
 end
 
@@ -46,8 +46,8 @@ local function PlayerAdded(Player: Client)
 
 			Data = LoadData(Key, v[1])
 
-			if (Data ~= "Error occurred, please retry again later.") then
-				Value.Value = Data
+			if (Data ~= "Error, try again later") then
+				Value.Value = Data or v[3]
 			else
 				Player:Kick(Data)
 			end
