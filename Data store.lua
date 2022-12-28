@@ -21,7 +21,7 @@ local function LoadData(Key: string, Data: string)
 
 		return (Value)
 	end)
-	
+
 	if (not success) then
 		return "Error occurred, please retry again later."
 	end
@@ -43,13 +43,13 @@ local function PlayerAdded(Player: Client)
 			Value = Instance.new(v[2])
 			Value.Name = v[1]
 			Value.Parent = leaderstats
-			
+
 			Data = LoadData(Key, v[1])
-			
+
 			if (Data ~= "Error occurred, please retry again later.") then
-				Player:Kick(Data)
-			else
 				Value.Value = Data
+			else
+				Player:Kick(Data)
 			end
 		end
 	end
