@@ -9,33 +9,36 @@ local Values = {
 	{"Ores", "IntValue", 0}
 }
 
+local DataStores = {
+	Diamonds = DataStore:GetDataStore("Diamonds"),
+	Ores = DataStore:GetDataStore("Ores")
+}
+
 
 local function LoadData(Key: string, Data: string)
-	local Value = DataStore:GetDataStore(Data):GetAsync(Key)
+	local Value = DataStores[Data]:GetAsync(Key)
 
 	return (Value)
 end
 
 local function SaveData(Key: string, Data: string, Value: number)
-	pcall(function()
-		DataStore:GetDataStore(Data):SetAsync(Key, Value)
-	end)
+	DataStores[Data]:SetAsync(Key, Value)
 end
 
 local function PlayerAdded(Player: Client)
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
 	leaderstats.Parent = Player
-	
+
 	for _, v in next, (Values) do
 		local Value: BaseValue, Data, Key: string do
 			Key = tostring(Player.UserId..v[1].."!")
-			
+
 			Value = Instance.new(v[2])
 			Value.Name = v[1]
-			
+
 			Data = LoadData(Key, v[1])
-			
+
 			Value.Value = Data or v[3]
 			Value.Parent = leaderstats
 		end
@@ -43,15 +46,13 @@ local function PlayerAdded(Player: Client)
 end
 
 local function PlayerRemoving(Player: Client)
-	local success, err = pcall(function()
-		for _, v: BaseValue in next, (Player.leaderstats:GetChildren()) do
-			local Key = tostring(Player.UserId..v.Name.."!")
-			
-			print(v.Name, v.Value)
-			
-			SaveData(Key, v.Name, v.Value)
-		end
-	end)
+	for _, v: BaseValue in next, (Player.leaderstats:GetChildren()) do
+		local Key = tostring(Player.UserId..v.Name.."!")
+
+		print(v.Name, v.Value)
+
+		SaveData(Key, v.Name, v.Value)
+	end
 end
 
 game:BindToClose(function()
