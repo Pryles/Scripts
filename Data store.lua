@@ -21,7 +21,7 @@ local function LoadData(Key: string, Data: string)
 
 		return (Value)
 	end)
-	
+
 	if (not success) then
 		return "Error, try again later"
 	end
@@ -66,15 +66,13 @@ local function PlayerRemoving(Player: Client)
 end
 
 game:BindToClose(function()
-	pcall(function()
-		for _, v: Client in Players:GetPlayers() do
-			for _, x: BaseValue in v.leaderstats:GetChildren() do
-				local Key = tostring(v.UserId..x.Name.."!")
+	for _, v: Client in Players:GetPlayers() do
+		for _, x: BaseValue in v.leaderstats:GetChildren() do
+			local Key = tostring(v.UserId..x.Name.."!")
 
-				SaveData(Key, x.Name, x.Value)
-			end
+			SaveData(Key, x.Name, x.Value)
 		end
-	end)
+	end
 end)
 
 Players.PlayerAdded:Connect(PlayerAdded)
