@@ -1,79 +1,67 @@
+--[[
+	Credits: iPryle
+	
+	This is made for educational purposes only.
+]]--
+
+local DataStoreService = game:GetService("DataStoreService")
+
 local Players = game:GetService("Players")
-local DataStore = game:GetService("DataStoreService")
+local Binary = require(script.Binary)
 
-type Client = Player & {[any]: any}
-type BaseValue = ValueBase & {[any]: any}
-
+local Datas = {}
 local Values = {
-	{"Diamonds", "IntValue", 5},
-	{"Ores", "IntValue", 0}
+	{"Coins", "IntValue", 0},
+	{"Diamonds", "IntValue", 0}
 }
 
-local DataStores = {
-	Diamonds = DataStore:GetDataStore("Diamonds"),
-	Ores = DataStore:GetDataStore("Ores")
-}
+for Index, Value in Values do
+	Datas[Value[1]] = DataStoreService:GetDataStore(Value[1])
+end
 
+local function LoadData(Key: string,Name: string)
+	assert(Datas[Name], "Error, try again later")
 
-local function LoadData(Key: string, Data: string)
-	local success, err = pcall(function()
-		local Value = DataStores[Data]:GetAsync(Key)
+	return Datas[Name]:GetAsync(Key)
+end
 
-		return (Value)
-	end)
+local function SetData(Key: string, Name: string, Value)
+	Datas[Name]:SetAsync(Key, Value)
+end
 
-	if (not success) then
-		return "Error, try again later"
+local function PlayerAdded(Player: Player & {[any]: any})
+	local Key = tostring(Binary:EncodeTable({Player.UserId}))
+	local Leaderboard = Instance.new("Folder", Player)
+	Leaderboard.Name = "leaderstats"
+	
+	for _, Value in Values do
+		local Data = LoadData(Key, Value[1])
+		local Instances: ValueBase & {[any]: any} = Instance.new(Value[2], Leaderboard)
+		Instances.Name = Value[1]
+		
+		Instances.Value = Data or Value[3]
 	end
 end
 
-local function SaveData(Key: string, Data: string, Value: number)
-	DataStores[Data]:SetAsync(Key, Value)
+local function PlayerRemoving(Player: Player & {[any]: any, any: any})
+	local Key = tostring(Binary:EncodeTable({Player.UserId}))
+	
+	for _, Value: ValueBase & {[any]: any} in Player.leaderstats:GetChildren() do
+		SetData(Key, Value.Name, Value.Value)
+	end
 end
 
-local function PlayerAdded(Player: Client)
-	local leaderstats = Instance.new("Folder")
-	leaderstats.Name = "leaderstats"
-	leaderstats.Parent = Player
-
-	for _, v in next, (Values) do
-		local Value: BaseValue, Data, Key: string do
-			Key = tostring(Player.UserId..v[1].."!")
-
-			Value = Instance.new(v[2])
-			Value.Name = v[1]
-			Value.Parent = leaderstats
-
-			Data = LoadData(Key, v[1])
-
-			if (Data ~= "Error, try again later") then
-				Value.Value = Data or v[3]
-			else
-				Player:Kick(Data)
-			end
+local function BindToClose()
+	for _, Player in Players:GetPlayers() do
+		local Key = tostring(Binary:EncodeTable({Player.UserId}))
+		
+		for _, Value: ValueBase & {[any]: any, any: any} in Player.leaderstats:GetChildren() do
+			SetData(Key, Value.Name, Value.Value)
 		end
 	end
 end
-
-local function PlayerRemoving(Player: Client)
-	for _, v: BaseValue in next, (Player.leaderstats:GetChildren()) do
-		local Key = tostring(Player.UserId..v.Name.."!")
-
-		print(v.Name, v.Value)
-
-		SaveData(Key, v.Name, v.Value)
-	end
-end
-
-game:BindToClose(function()
-	for _, v: Client in Players:GetPlayers() do
-		for _, x: BaseValue in v.leaderstats:GetChildren() do
-			local Key = tostring(v.UserId..x.Name.."!")
-
-			SaveData(Key, x.Name, x.Value)
-		end
-	end
-end)
 
 Players.PlayerAdded:Connect(PlayerAdded)
 Players.PlayerRemoving:Connect(PlayerRemoving)
+
+game:BindToClose(BindToClose)
