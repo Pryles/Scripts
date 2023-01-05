@@ -4,10 +4,11 @@
 	This is made for educational purposes only.
 ]]--
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DataStoreService = game:GetService("DataStoreService")
 
 local Players = game:GetService("Players")
-local Binary = require(script.Binary)
+local Binary = require(ReplicatedStorage.Modules.Binary)
 
 local Datas = {}
 local Values = {
@@ -19,13 +20,13 @@ for Index, Value in Values do
 	Datas[Value[1]] = DataStoreService:GetDataStore(Value[1])
 end
 
-local function LoadData(Key: string,Name: string)
+local function GetAsync(Key: string,Name: string)
 	assert(Datas[Name], "Error, try again later")
 
 	return Datas[Name]:GetAsync(Key)
 end
 
-local function SetData(Key: string, Name: string, Value)
+local function SetAsync(Key: string, Name: string, Value)
 	Datas[Name]:SetAsync(Key, Value)
 end
 
@@ -35,7 +36,7 @@ local function PlayerAdded(Player: Player & {[any]: any})
 	Leaderboard.Name = "leaderstats"
 	
 	for _, Value in Values do
-		local Data = LoadData(Key, Value[1])
+		local Data = GetAsync(Key, Value[1])
 		local Instances: ValueBase & {[any]: any} = Instance.new(Value[2], Leaderboard)
 		Instances.Name = Value[1]
 		
@@ -47,7 +48,7 @@ local function PlayerRemoving(Player: Player & {[any]: any, any: any})
 	local Key = tostring(Binary:EncodeTable({Player.UserId}))
 	
 	for _, Value: ValueBase & {[any]: any} in Player.leaderstats:GetChildren() do
-		SetData(Key, Value.Name, Value.Value)
+		SetAsync(Key, Value.Name, Value.Value)
 	end
 end
 
@@ -56,7 +57,7 @@ local function BindToClose()
 		local Key = tostring(Binary:EncodeTable({Player.UserId}))
 		
 		for _, Value: ValueBase & {[any]: any, any: any} in Player.leaderstats:GetChildren() do
-			SetData(Key, Value.Name, Value.Value)
+			SetAsync(Key, Value.Name, Value.Value)
 		end
 	end
 end
